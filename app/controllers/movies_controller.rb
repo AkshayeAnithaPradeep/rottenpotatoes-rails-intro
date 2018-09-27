@@ -1,7 +1,5 @@
 class MoviesController < ApplicationController
 
-  @@movies_class = nil
-  @@checked_ratings = nil
   
   def movie_params
     params.require(:movie).permit(:title, :rating, :description, :release_date)
@@ -14,27 +12,30 @@ class MoviesController < ApplicationController
   end
 
   def index
-    @all_ratings = Movie.get_all_ratings()
     @ratings = Hash.new
-    if params[:ratings]
-      @ratings = params[:ratings]
-      @@checked_ratings = @ratings.keys
-      @@movies_class = Movie.where(rating: @@checked_ratings)
-    elsif @@checked_ratings
-      @@checked_ratings.each do |rating|
-        @ratings[rating] = 1
+    @all_ratings = Movie.get_all_ratings()
+    if params["ratings"]
+      session[:ratings] = params["ratings"]
+      session[:ratings].each do |rating|
+        @ratings[rating[0]] = 1
+      end
+    elsif session[:ratings]
+      session[:ratings].each do |rating|
+        @ratings[rating[0]] = 1
       end
     else
       @all_ratings.each do |rating|
         @ratings[rating] = 1
       end
     end
-    if @@movies_class
-      @movies = @@movies_class
-    else
-      @movies = Movie.all
+    @movies = Movie.where(rating: @ratings.keys).order(session[:sort])
+    if session[:sort] == 'title'
+      print "Here"
+      @title_class = "hilite"
+    elsif session[:sort] == 'release_date'
+      print "Or here"
+      @release_class = "hilite"
     end
-    
   end
 
   def new
@@ -66,15 +67,10 @@ class MoviesController < ApplicationController
   end
   
   def sort
-    if !@@movies_class
-      @@movies_class = Movie.all
-    end
     if params[:format] == "sort_release"
-      @@movies_class = @@movies_class.reorder(:release_date)
-      puts "Here1"
+      session[:sort] = :release_date
     elsif params[:format] == "sort_title"
-      @@movies_class = @@movies_class.reorder(:title)
-      puts "Here2"
+      session[:sort] = :title
     end
     redirect_to movies_path()
   end
