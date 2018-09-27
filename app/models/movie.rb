@@ -1,12 +1,13 @@
 class Movie < ActiveRecord::Base
     def self.get_all_ratings
-        @movies = self.all
-        @ratings = Array.new
-        @movies.each do |movie|
-          if !@ratings.include? movie.rating
-            @ratings.push(movie.rating)
-          end
+      #returns all ratings in the db
+      @movies = self.all
+      @ratings = Array.new
+      @movies.each do |movie|
+        if !@ratings.include? movie.rating
+          @ratings.push(movie.rating)
         end
-        return @ratings
+      end
+      return @ratings
     end
 end

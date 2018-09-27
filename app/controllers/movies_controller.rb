@@ -13,28 +13,26 @@ class MoviesController < ApplicationController
 
   def index
     @ratings = Hash.new
-    @all_ratings = Movie.get_all_ratings()
+    @all_ratings = Movie.get_all_ratings() #retrieve all possible ratings
     if params["ratings"]
       session[:ratings] = params["ratings"]
       session[:ratings].each do |rating|
-        @ratings[rating[0]] = 1
+        @ratings[rating[0]] = 1           #persist checkmark on checkbox for next render
       end
     elsif session[:ratings]
-      session[:ratings].each do |rating|
-        @ratings[rating[0]] = 1
-      end
+      params["ratings"] = session[:ratings]
+      flash.keep
+      redirect_to movies_path(params)
     else
       @all_ratings.each do |rating|
-        @ratings[rating] = 1
+        @ratings[rating] = 1        #default case - all boxes checked
       end
     end
-    @movies = Movie.where(rating: @ratings.keys).order(session[:sort])
+    @movies = Movie.where(rating: @ratings.keys).order(session[:sort])  #sorted and filtered movie list
     if session[:sort] == 'title'
-      print "Here"
       @title_class = "hilite"
     elsif session[:sort] == 'release_date'
-      print "Or here"
-      @release_class = "hilite"
+      @release_class = "hilite"         #set hselected header to yellow color
     end
   end
 
@@ -67,12 +65,13 @@ class MoviesController < ApplicationController
   end
   
   def sort
+    #set session hash value for selected sort type
     if params[:format] == "sort_release"
       session[:sort] = :release_date
     elsif params[:format] == "sort_title"
       session[:sort] = :title
     end
-    redirect_to movies_path()
+    redirect_to movies_path(params)
   end
 
 end
